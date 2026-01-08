@@ -4,6 +4,17 @@
 # Since we control the installer, we know exactly where this will be.
 INSTALL_ROOT="$HOME/.veryfi"
 
+# --- Display Logo ---
+YELLOW='\033[0;33m'
+RESET='\033[0m'
+LOGO_FILE="$INSTALL_ROOT/assets/logo.txt"
+
+if [ -f "$LOGO_FILE" ]; then
+    echo -e "${YELLOW}"
+    cat "$LOGO_FILE"
+    echo -e "${RESET}"
+fi
+
 # Point to the isolated python
 VENV_PYTHON="$INSTALL_ROOT/venv/bin/python"
 SRC_DIR="$INSTALL_ROOT/src"
@@ -19,6 +30,12 @@ fi
 
 case "$COMMAND" in
     "my")
+        # Check if the advisor was installed
+        if [ ! -f "$INSTALL_ROOT/.advisor_enabled" ]; then
+            echo "Error: The AI Advisor is not installed."
+            echo "To use this feature, please re-run the installer and choose 'y' when asked to install the advisor."
+            exit 1
+        fi
         "$VENV_PYTHON" "$SRC_DIR/advisor.py" "$@"
         ;;
     "exam")

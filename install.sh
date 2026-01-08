@@ -31,9 +31,18 @@ cp "$SCRIPT_DIR/uninstall.sh" "$INSTALL_DIR/"
 echo "--> Creating Python virtual environment..."
 python3 -m venv "$INSTALL_DIR/venv"
 
-# 5. Install Dependencies
-echo "--> Installing dependencies via pip..."
-"$INSTALL_DIR/venv/bin/pip" install -r "$INSTALL_DIR/requirements.txt"
+# 5. Install Optional AI Advisor Dependencies
+read -p "Do you want to install the optional AI Advisor (requires ~50MB download)? (y/n) " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "--> Installing AI Advisor dependencies via pip..."
+    "$INSTALL_DIR/venv/bin/pip" install -r "$INSTALL_DIR/requirements.txt"
+    # Create a flag file to indicate the advisor is enabled
+    touch "$INSTALL_DIR/.advisor_enabled"
+    echo "--> AI Advisor installed."
+else
+    echo "--> Skipping AI Advisor installation."
+fi
 
 # 6. Make executables
 echo "--> Setting file permissions..."
