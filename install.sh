@@ -64,6 +64,15 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     ln -s "$INSTALL_DIR/bin/veryfi" "$BIN_DIR/pb152cv"
 fi
 
+# 9. Self-destruct the source folder
+(
+  sleep 2 &&
+  echo -e "\n--> Cleaning up installation source folder..." &&
+  rm -rf "$SCRIPT_DIR" &
+) &
+# Detach the subshell completely
+disown
+
 echo "------------------------------------------------"
 echo "Installation Complete."
 echo "Location: $INSTALL_DIR"

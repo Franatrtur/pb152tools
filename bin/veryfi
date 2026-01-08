@@ -51,9 +51,18 @@ case "$COMMAND" in
         read -p "Are you sure you want to uninstall veryfi? This will remove ~/.veryfi and symlinks. (y/n) " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo "Running uninstaller..."
-            # Execute the uninstaller script from its installed location
-            bash "$INSTALL_ROOT/uninstall.sh"
+            echo "Uninstalling veryfi in the background..."
+            # Copy uninstaller to /tmp to avoid "directory in use" errors
+            TMP_UNINSTALLER="/tmp/veryfi_uninstall.sh"
+            cp "$INSTALL_ROOT/uninstall.sh" "$TMP_UNINSTALLER"
+            chmod +x "$TMP_UNINSTALLER"
+
+            # Run from /tmp in the background and detach
+            nohup bash "$TMP_UNINSTALLER" > /dev/null 2>&1 &
+            
+            echo "Uninstallation process started. You can continue using your terminal."
+            # Exit immediately to release file handles
+            exit 0
         else
             echo "Uninstallation cancelled."
         fi
