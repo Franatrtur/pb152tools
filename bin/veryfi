@@ -31,7 +31,15 @@ case "$COMMAND" in
         echo "Usage: veryfi [exam|my|format|uninstall] ..."
         ;;
     "uninstall")
-        echo "Run $INSTALL_ROOT/uninstall.sh to uninstall veryfi. Make sure to reaload your shell."
+        read -p "Are you sure you want to uninstall veryfi? This will remove ~/.veryfi and symlinks. (y/n) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo "Running uninstaller..."
+            # Execute the uninstaller script from its installed location
+            bash "$INSTALL_ROOT/uninstall.sh"
+        else
+            echo "Uninstallation cancelled."
+        fi
         ;;
     *)
         echo "Unknown command: $COMMAND"
