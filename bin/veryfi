@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Hardcode the install location. 
+# Since we control the installer, we know exactly where this will be.
+INSTALL_ROOT="$HOME/.veryfi"
+
+# Point to the isolated python
+VENV_PYTHON="$INSTALL_ROOT/venv/bin/python"
+SRC_DIR="$INSTALL_ROOT/src"
+
+COMMAND="$1"
+shift
+
+if [ ! -f "$VENV_PYTHON" ]; then
+    echo "Error: Corrupt installation. Python venv not found at $VENV_PYTHON"
+    echo "Please re-run the installer."
+    exit 1
+fi
+
+case "$COMMAND" in
+    "my")
+        "$VENV_PYTHON" "$SRC_DIR/advisor.py" "$@"
+        ;;
+    "exam")
+        "$VENV_PYTHON" "$SRC_DIR/mock.py" "$@"
+        ;;
+    "help"|"--help"|"-h")
+        echo "Usage: veryfi [exam|my] ..."
+        ;;
+    *)
+        echo "Unknown command: $COMMAND"
+        exit 1
+        ;;
+esac
