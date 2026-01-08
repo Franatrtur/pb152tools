@@ -363,9 +363,17 @@ def reveal_exam_files(exam_dir: Path):
     except Exception as e: logging.error(f"Failed to remove mapping file: {e}")
 
 def run_pb152_update():
-    logging.info("Running pb152 update.")
+    """
+    Runs the 'pb152 update' command interactively, allowing the user to enter
+    credentials if needed.
+    """
+    logging.info("Running pb152 update. You may be asked to log in.")
     try:
-        subprocess.run("cd ~/pb152 && pb152 update", shell=True, check=True, capture_output=True)
+        # Note: We do NOT capture output. This lets the command run in the foreground
+        # and use the terminal for interactive input (like a password).
+        # The command also needs to be run from the ~/pb152 directory.
+        pb152_dir = Path.home() / 'pb152'
+        subprocess.run("pb152 update", shell=True, check=True, cwd=pb152_dir)
         logging.info("pb152 update finished.")
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         logging.warning(f"'pb152 update' failed: {e}. Continuing without update.")

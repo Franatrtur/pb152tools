@@ -1,5 +1,6 @@
-# veryfi
+# veryfi - pb152cv tools
 
+It is very, very FI.
 this is a collection of tools for pb152cv.
 
 ## how to install
