@@ -1,10 +1,11 @@
 # veryfi - pb152cv tools
 
-It is very, very FI.
+It is very, very FI.  
 this is a collection of tools for pb152cv.
 
 ## how to install
 
+ON AISA:
 ```bash
 git clone https://github.com/Franatrtur/veryfi.git
 veryfi/install.sh
