@@ -5,8 +5,8 @@ this is a collection of tools for pb152cv.
 ## how to install
 
 ```bash
-# just clone this repo and run the installer
-./install.sh
+git clone https://github.com/Franatrtur/veryfi.git
+veryfi/install.sh
 ```
 make sure `~/bin` is in your `PATH`. it probably is.
 
