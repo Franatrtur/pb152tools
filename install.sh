@@ -44,8 +44,17 @@ rm -f "$BIN_DIR/veryfi"
 # Create new link
 ln -s "$INSTALL_DIR/bin/veryfi" "$BIN_DIR/veryfi"
 
+# 8. Ask for optional alias
+read -p "Do you want to add the 'pb152cv' alias for 'veryfi'? (y/n) " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    rm -f "$BIN_DIR/pb152cv"
+    ln -s "$INSTALL_DIR/bin/veryfi" "$BIN_DIR/pb152cv"
+    echo "Alias 'pb152cv' created."
+fi
+
 echo "------------------------------------------------"
 echo "Installation Complete."
 echo "Location: $INSTALL_DIR"
-echo "Usage: veryfi exam ..."
+echo "Usage: veryfi help ..."
 echo "------------------------------------------------"

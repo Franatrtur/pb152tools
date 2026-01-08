@@ -24,8 +24,14 @@ case "$COMMAND" in
     "exam")
         "$VENV_PYTHON" "$SRC_DIR/mock.py" "$@"
         ;;
+    "format")
+        "$VENV_PYTHON" "$SRC_DIR/format_practice.py" "$@"
+        ;;
     "help"|"--help"|"-h")
-        echo "Usage: veryfi [exam|my] ..."
+        echo "Usage: veryfi [exam|my|format|uninstall] ..."
+        ;;
+    "uninstall")
+        echo "Run $INSTALL_ROOT/uninstall.sh to uninstall veryfi. Make sure to reaload your shell."
         ;;
     *)
         echo "Unknown command: $COMMAND"

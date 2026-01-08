@@ -1,0 +1,168 @@
+# 1. File Basics
+
+## Summary
+Covers basic I/O using file descriptors with `read`, `write`, and `lseek`.
+
+## To Use
+- System Calls: `read`, `write`, `lseek`.
+- Library Functions: `dprintf` (for formatted output), `memcpy`, `memcmp`, `memchr`.
+
+## Notes/Cautions
+- A `write` returning a value less than `nbytes` indicates a partial write; for this course, it can be treated as an error.
+- For regular files, a `read` returning less than `nbytes` means End-Of-File is next. This is not true for other file types like pipes or sockets.
+- `lseek`'s `whence` parameter can be `SEEK_SET` (from start), `SEEK_CUR` (from current), or `SEEK_END` (from end). It always returns the new absolute position from the start.
+
+# 2. Datagrams
+
+## Summary
+Covers communication using connectionless datagrams (packets) via sockets.
+
+## To Use
+- System Calls: `send`, `recv`.
+- Library Functions: `ntohl`, `htonl`, `ntohs`, `htons` for converting between network (big-endian) and host byte order.
+
+## Notes/Cautions
+- `recv`: If the buffer is smaller than the datagram, the rest of the datagram is IRREVERSIBLY LOST.
+- `recv`: A return value of `0` means an EMPTY datagram was received, NOT end-of-file.
+- `send`: A successful return does not guarantee delivery.
+- `send`: An attempt to send a datagram larger than the system limit (e.g., MTU) will fail with `EMSGSIZE`.
+- To detect oversized datagrams, use a buffer that is 1 byte larger than the maximum expected size.
+
+# 3. Blocking I/O and Event Waiting
+
+## Summary
+Deals with I/O on streams (pipes, connected sockets) which can block, and how to wait on multiple file descriptors at once.
+
+## To Use
+- System Calls: `poll`.
+- `recv` flags: `MSG_WAITALL` to read a fixed number of bytes.
+- Library Functions: `memmove`.
+
+## Notes/Cautions
+- `read` from a stream can return fewer bytes than requested at any time ("short read"). You must be prepared to call it in a loop to get all the data.
+- `read` from a stream returning `0` means the connection was closed by the other side.
+- Use `poll` to wait for events on multiple file descriptors without blocking on a single one. This is the foundation of an "event loop".
+- `MSG_WAITALL` is useful for reading fixed-size headers/messages, but it will DEADLOCK if the peer sends fewer bytes and keeps the connection open.
+
+# 4. Memory Mapping & Non-blocking Write
+
+## Summary
+Covers mapping files directly into memory with `mmap` and handling non-blocking writes.
+
+## To Use
+- System Calls: `mmap`, `munmap`, `msync`.
+- `mmap` flags: `MAP_SHARED` (changes are written back to file), `MAP_PRIVATE` (changes are private to process, copy-on-write).
+
+## Notes/Cautions
+- **Resource Management**: Every `mmap` must be paired with `munmap` to release the mapping, even on error paths.
+- `msync` or `munmap` is needed to guarantee that changes in a `MAP_SHARED` mapping are flushed to disk.
+- A non-blocking `write` can return `-1` with `errno` set to `EAGAIN` if the write would block. This is not a fatal error. It can also write fewer bytes than requested.
+
+# 5. Strings, Paths, `openat`
+
+## Summary
+Covers opening files using paths relative to a directory file descriptor.
+
+## To Use
+- System Calls: `openat`, `close`.
+- `openat` flags: `O_RDONLY`, `O_WRONLY`, `O_RDWR`, `O_CREAT`.
+- `AT_FDCWD` for `openat` to signify the current working directory.
+- Library Functions: `getdelim` with helpers `fdopen`, `dup`, `fclose`, `ferror`, `feof`.
+
+## Notes/Cautions
+- `close` can fail. If it fails on a write-enabled descriptor, it can indicate data loss (`EIO`). This is a real error that must be reported.
+- Do not use a file descriptor after it has been closed. Its number can be immediately reused by the system.
+- `getdelim` is useful but reads a whole delimited record into memory. Avoid it if records can be very large. It also requires converting the descriptor to a `FILE*` stream.
+
+# 6. Directories
+
+## Summary
+Covers directory traversal and manipulation of directory entries (links).
+
+## To Use
+- System Calls: `linkat`, `unlinkat`, `renameat`, `fstatat`, `dup`.
+- `fstatat` flags: `AT_SYMLINK_NOFOLLOW` to get info about the symlink itself, not its target.
+- `openat` flags: `O_DIRECTORY` to ensure you are opening a directory.
+- Library Functions: `fdopendir`, `readdir`, `rewinddir`, `closedir`, `strdup`.
+
+## Notes/Cautions
+- Always use `O_DIRECTORY` when opening a directory to prevent race conditions where a directory is replaced by a file.
+- `readdir` returns a pointer to internal static memory. If you need to save the `d_name`, you **must** copy it (e.g., using `strdup`).
+- To distinguish between `readdir` error and end-of-directory, you must set `errno = 0` before calling `readdir`. A `NULL` return with `errno != 0` is an error.
+- The `d_type` field in `struct dirent` is not reliable. Use `fstatat` if you need the definite file type.
+
+# 7. Addresses and Network
+
+## Summary
+Covers creating sockets and resolving network addresses to connect to them.
+
+## To Use
+- System Calls: `socket`, `connect`, `bind`, `sendto`, `recvfrom`.
+- Socket families/types: `AF_UNIX`, `AF_INET`, `AF_INET6`, `SOCK_STREAM`, `SOCK_DGRAM`.
+- Library Functions: `getaddrinfo`, `freeaddrinfo`.
+
+## Notes/Cautions
+- `getaddrinfo` is the standard way to resolve hostnames/services (e.g., "www.google.com", "http") into addresses the kernel understands.
+- The result from `getaddrinfo` is a linked list of possible addresses. Your code should try them in order until one works.
+- **You must free the memory** allocated by `getaddrinfo` by calling `freeaddrinfo` on the head of the list.
+- For datagram sockets, `connect` sets the default peer address for `send`/`recv`. `bind` assigns a local address (path for `AF_UNIX`).
+
+# 8. Executable Files
+
+## Summary
+Covers replacing the current process with a new program using the `exec` family of calls.
+
+## To Use
+- System Calls: `execve` and its wrappers (`execv`, `execl`, `execlp`, `execvp`), `dup2`.
+- Library Functions: `getenv`, `setenv`, `unsetenv`, `putenv`.
+
+## Notes/Cautions
+- The `exec*` family of functions **REPLACES** the current process. They only return if an error occurs.
+- `dup2` is the primary tool for redirecting `stdin`, `stdout`, `stderr` before an `exec` call.
+- **DO NOT USE `system()`** with any external or user-provided data. It is a major security risk (command injection). Prefer `exec*` calls.
+- `setenv` is safer than `putenv`. `putenv` requires you to give it a pointer to memory that it will then own; you cannot free it or use a stack variable. `setenv` copies the strings.
+
+# 9. Concurrent Communication (Servers)
+
+## Summary
+Covers setting up a listening socket to accept incoming connections.
+
+## To Use
+- System Calls: `listen`, `accept`.
+
+## Notes/Cautions
+- The workflow for a server is: `socket` -> `bind` -> `listen` -> `accept` (in a loop).
+- The file descriptor passed to `listen` is the "listening socket". It is only used to `accept` new connections.
+- `accept` returns a **new** file descriptor. This new descriptor is used for `read`/`write` communication with the connected client.
+
+# 10. Processes
+
+## Summary
+Covers creating and managing child processes with `fork` and `waitpid`.
+
+## To Use
+- System Calls: `fork`, `exit`, `waitpid`.
+- `waitpid` options: `WNOHANG` for non-blocking checks.
+
+## Notes/Cautions
+- `fork()` returns twice: `0` in the child, and the child's PID in the parent.
+- **File descriptors are duplicated** across a `fork`. They share the underlying open file description (including file position).
+- **CRUCIAL**: When using pipes for parent-child communication, each process **must** `close` the end of the pipe it is not using. Failure to do so will cause `read` to hang instead of detecting EOF.
+- The parent must call `waitpid` for every child to prevent them from becoming "zombie" processes.
+
+# 11. Threads
+
+## Summary
+Covers creating and managing multiple threads of execution within a single process.
+
+## To Use
+- Pthread Functions: `pthread_create`, `pthread_join`, `pthread_exit`.
+- Atomics (from `<stdatomic.h>`): `atomic_int`, `atomic_uint`, etc. for safe single-variable access.
+
+## Notes/Cautions
+- All memory (global, heap) is **shared** between threads. Only stack-local variables are private.
+- This sharing creates the risk of race conditions.
+- For this course's scope: avoid read-modify-write patterns on shared data. Only write brand-new values or read for local use.
+- To guarantee atomic reads and writes to shared primitive variables, use types from `<stdatomic.h>`.
+- The `volatile` keyword is **NOT** sufficient for thread safety.
+- For every `pthread_create`, there must be a corresponding `pthread_join` to clean up resources (unless the thread is explicitly detached).
