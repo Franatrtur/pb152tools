@@ -57,9 +57,9 @@ The student's code works for the basic tests. Congratulate them briefly. Then, c
 FAILURE_PROMPT_TEMPLATE = """
 You are an expert C programming tutor for the PB152 course. Your task is to provide guidance to a student on how to proceed with their coding assignment based on the errors from their last run.
 
-Do not provide a direct solution or complete code. Instead, act as a helpful guide who points the student in the right direction. Your advice should be based on the provided context, which includes the student's current code, the `make` output, the detailed error log, a description of the course's build environment, and a reference manual.
+Do not provide a direct solution or complete code. Instead, act as a helpful guide who points the student in the right direction. Your advice should be based on the provided context, which includes the student's current code, the `make` output, a description of the course's build environment, and a reference manual.
 
-Analyze the student's code in light of the `make` output and the log file. Your guidance should help the student understand the error, suggest relevant functions from the reference manual, and give them a strategy for the next steps.
+Analyze the student's code in light of the execution log from `make`. Your guidance should help the student understand the error, suggest relevant functions from the reference manual, and give them a strategy for the next steps.
 
 **Context:**
 
@@ -78,14 +78,9 @@ Analyze the student's code in light of the `make` output and the log file. Your 
     {c_code}
     ```
 
-4.  **`make` Command Output:**
+4.  **Execution Log (from `make` stdout and stderr):**
     ```
     {make_output}
-    ```
-    
-5.  **Execution Log (`{log_file_path}`):**
-    ```
-    {log_content}
     ```
 
 **Your Task:**
@@ -119,14 +114,18 @@ def main():
         print(f"Error: File not found at '{c_file_path}'", file=sys.stderr)
         sys.exit(1)
 
+    # Touch the file to update its modification time, forcing make to recompile.
+    c_file_path.touch()
+
     c_file_dir = c_file_path.parent
     c_file_name = c_file_path.name
+    make_target = c_file_path.stem
 
     # 3. Run `make` command
-    print(f"Running 'make {c_file_name}' in {c_file_dir}...", file=sys.stderr)
+    print(f"Running 'make {make_target}' in {c_file_dir}...", file=sys.stderr)
     try:
         make_process = subprocess.run(
-            ["make", c_file_name],
+            ["make", make_target],
             cwd=c_file_dir,
             capture_output=True,
             text=True,
@@ -141,17 +140,13 @@ def main():
         print("Error: 'make' command not found. Is it installed and in your PATH?", file=sys.stderr)
         sys.exit(1)
     except subprocess.TimeoutExpired:
-        print(f"Error: 'make {c_file_name}' timed out after 30 seconds.", file=sys.stderr)
+        print(f"Error: 'make {make_target}' timed out after 30 seconds.", file=sys.stderr)
         sys.exit(1)
 
-    # 4. Determine Log File Path and Read Context
-    log_file_name = f".{c_file_name}.log"
-    log_file_path = c_file_dir / log_file_name
-
+    # 4. Read Context
     c_code = read_file_or_default(c_file_path, "")
     process_context = read_file_or_default(PROCESS_CONTEXT_FILE, "Process context not found.")
     reference_context = read_file_or_default(REFERENCE_CONTEXT_FILE, "Reference context not found.")
-    log_content = read_file_or_default(log_file_path, "No log file found.")
 
     # 5. Choose Prompt and Construct
     tests_passed = make_process.stdout.strip().endswith("OK")
@@ -170,9 +165,7 @@ def main():
             reference_context=reference_context,
             c_file_path=c_file_name,
             c_code=c_code,
-            make_output=make_output,
-            log_file_path=log_file_path.name,
-            log_content=log_content
+            make_output=make_output
         )
 
     # 6. Call the Gemini API
