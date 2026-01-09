@@ -3,8 +3,9 @@
 import os
 import sys
 import subprocess
-import google.generativeai as genai
 from pathlib import Path
+from google import genai
+from google.genai import types
 
 # --- Constants ---
 SCRIPT_DIR = Path(__file__).parent.resolve()
@@ -102,10 +103,10 @@ def read_file_or_default(path: Path, default: str) -> str:
 def main():
     """Main function to generate and print the advisor's guidance."""
     # 1. Check for API Key
-    if "GEMINI_API_KEY" not in os.environ:
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
         print("Error: The GEMINI_API_KEY environment variable is not set.", file=sys.stderr)
         sys.exit(1)
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
     # 2. Get File Path from Arguments
     if len(sys.argv) < 2:
@@ -177,11 +178,16 @@ def main():
     # 6. Call the Gemini API
     try:
         print(f"Veryfi Advisor is thinking...\n", file=sys.stderr)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(prompt,
-                                         generation_config=genai.types.GenerationConfig(
-                                             temperature=0.2,
-                                         ))
+        
+        client = genai.Client(api_key=api_key)
+        
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.2,
+            )
+        )
         
         # 7. Print the Response
         print(response.text)
