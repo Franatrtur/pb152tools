@@ -14,7 +14,7 @@ from typing import List, Set, Dict, NamedTuple
 # --- Configuration ---
 MONTH_DIR_PATTERN = re.compile(r'^(0[1-9]|1[0-2])$')
 SUPPORT_FILES = ['pb152.cpp', 'pb152io.c', '.helper.sh']
-PROGRESS_FILE = 'progress.json'
+PROGRESS_FILE = 'exams.progress.json'
 DEST_DIR_NAME = 'exam'
 ARCHIVE_DIR_NAME = 'exams_finished'
 TEXT_SOURCE_FILE = 'text/pb152.reference.txt'
@@ -260,6 +260,60 @@ def archive_existing_exam(exam_dir: Path, archive_root: Path):
         exam_dir.mkdir(parents=True, exist_ok=True)
     except Exception as e: logging.error(f"Failed to cleanup exam directory: {e}")
 
+def trash_exam_files(exam_dir: Path, progress_path: Path):
+    """
+    Removes the current exam directory and ensures its tasks are not saved in the progress file.
+    """
+    if not exam_dir.exists():
+        logging.info("No exam directory found to trash.")
+        return
+
+    # Load existing progress
+    processed = load_processed_paths(progress_path)
+    
+    files_to_remove_from_progress = set()
+    mapping_file = exam_dir / '00_mapping.txt'
+
+    if mapping_file.exists():
+        try:
+            with open(mapping_file, 'r') as f:
+                for line in f:
+                    if '=' in line:
+                        _, original_path_str = line.strip().split('=', 1)
+                        files_to_remove_from_progress.add(original_path_str.strip())
+        except Exception as e:
+            logging.warning(f"Could not read mapping file in trash: {e}")
+    else:
+        # Assume revealed or --show generated files (e.g., "04.p1.c")
+        for file_path in exam_dir.glob("*.c"):
+            if file_path.name in SUPPORT_FILES or file_path.name.startswith('.'):
+                continue
+            
+            parts = file_path.name.split('.', 1)
+            # Check if it matches the "week.filename" pattern and the week is valid
+            if len(parts) == 2 and MONTH_DIR_PATTERN.match(parts[0]):
+                files_to_remove_from_progress.add(f"{parts[0]}/{parts[1]}")
+            
+    if not files_to_remove_from_progress:
+        logging.info("No tracked exam files identified to remove from progress.")
+    
+    # Remove files from processed set
+    original_processed_count = len(processed)
+    if files_to_remove_from_progress:
+        processed.difference_update(files_to_remove_from_progress)
+        if len(processed) < original_processed_count:
+            save_processed_paths(progress_path, processed)
+            logging.info(f"Removed {original_processed_count - len(processed)} tasks from progress.")
+    else:
+        logging.info("No changes to progress file needed based on current exam.")
+
+    # Remove the exam directory
+    try:
+        shutil.rmtree(str(exam_dir))
+        logging.info(f"Removed exam directory: {exam_dir.name}")
+    except OSError as e:
+        logging.error(f"Error removing exam directory {exam_dir.name}: {e}")
+
 def generate_intro_joke(root_dir: Path, dest_dir: Path):
     ref_file = root_dir / TEXT_SOURCE_FILE
     words = []
@@ -320,6 +374,62 @@ def create_dynamic_makefile(template_path: Path, dest_dir: Path, active_filename
 
     with open(dest_dir / 'makefile', 'w') as f: f.write(content)
 
+def hide_exam_files(exam_dir: Path):
+    """Anonymizes revealed files in the exam directory."""
+    mapping_file = exam_dir / '00_mapping.txt'
+    if mapping_file.exists():
+        logging.info("Exam is already anonymized.")
+        return
+
+    logging.info("Anonymizing exam files...")
+
+    file_pattern = re.compile(r'^\d{2}\..*\.c$')
+    
+    revealed_files = sorted([p for p in exam_dir.glob("*.c") if file_pattern.match(p.name)])
+
+    if not revealed_files:
+        logging.info("No revealed files found to hide.")
+        return
+
+    mapping_lines = []
+    new_filenames = []
+    
+    for idx, src_path in enumerate(revealed_files):
+        original_name = src_path.name
+        
+        try:
+            week, original_basename = original_name.split('.', 1)
+            original_path_for_mapping = f"{week}/{original_basename}"
+        except ValueError:
+            logging.warning(f"Could not parse original path from '{original_name}'. Skipping.")
+            continue
+
+        dest_name = f"task_{idx + 1}.c"
+        dest_file = exam_dir / dest_name
+        mapping_lines.append(f"{dest_name} = {original_path_for_mapping}")
+        
+        try:
+            shutil.move(str(src_path), str(dest_file))
+            new_filenames.append(dest_name)
+            logging.info(f"Anonymized: {original_name} -> {dest_name}")
+        except Exception as e:
+            logging.error(f"Failed to rename {original_name}: {e}")
+            continue
+
+    if mapping_lines:
+        try:
+            with open(mapping_file, 'w') as f:
+                f.write("\n".join(mapping_lines) + "\n")
+            logging.info("Created mapping file '00_mapping.txt'.")
+        except Exception as e:
+            logging.error(f"Failed to write mapping file: {e}")
+
+    makefile_path = exam_dir / 'makefile'
+    if makefile_path.exists() and new_filenames:
+        create_dynamic_makefile(makefile_path, exam_dir, new_filenames)
+        logging.info("Makefile updated with anonymized names.")
+
+
 def reveal_exam_files(exam_dir: Path):
     mapping_file = exam_dir / '00_mapping.txt'
     if not mapping_file.exists():
@@ -379,19 +489,61 @@ def run_pb152_update():
         logging.warning(f"'pb152 update' failed: {e}. Continuing without update.")
 
 
+def run_roulette(root_dir: Path, args: argparse.Namespace):
+    """
+    Selects and prints random tasks based on criteria, without creating an exam.
+    """
+    logging.info("Running roulette...")
+
+    progress_path = root_dir / PROGRESS_FILE
+    processed = set()
+    if not args.ignore_progress:
+        processed = load_processed_paths(progress_path)
+        logging.info(f"Loaded {len(processed)} completed tasks from progress file.")
+    else:
+        logging.info("Ignoring progress file as requested.")
+
+    target_weeks = parse_week_range(args.weeks)
+    include_p = not args.only_r
+    include_r = not args.only_p
+
+    candidates = get_candidates(root_dir, target_weeks, include_p, include_r, processed)
+    
+    if not candidates:
+        logging.info("No eligible files found based on your criteria.")
+        return
+
+    count = min(args.num, len(candidates))
+    selected = random.sample(candidates, count)
+
+    logging.info(f"Selected {len(selected)} tasks:")
+    for task_path in selected:
+        print(f"  -> {task_path.parent.name}/{task_path.name}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate a mock PB152 exam.")
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
     # Existing subparsers
     subparsers.add_parser('reveal', help='Reveal anonymized file names in the current exam')
-    subparsers.add_parser('done', help='Archive last exam')
+    subparsers.add_parser('archive', aliases=['done'], help='Archive last exam')
+    subparsers.add_parser('hide', help='Anonymize file names in the current exam')
+    subparsers.add_parser('trash', help='Remove current exam without archiving and untrack its tasks')
 
     # New 'progress' subparser
     progress_parser = subparsers.add_parser('progress', help='Show assignment completion progress')
     progress_parser.add_argument('-p', '--only-p', action='store_true', help="Show only P assignments")
     progress_parser.add_argument('-r', '--only-r', action='store_true', help="Show only R assignments")
     
+    # 'roulette' subparser
+    roulette_parser = subparsers.add_parser('roulette', help='Randomly select tasks without creating an exam.')
+    roulette_parser.add_argument('-n', '--num', type=int, default=5, help="Number of files to select")
+    roulette_parser.add_argument('-w', '--weeks', type=str, default="all", help="Weeks filter (e.g., '04-08,11')")
+    roulette_parser.add_argument('-p', '--only-p', action='store_true', help="Only select P assignments")
+    roulette_parser.add_argument('-r', '--only-r', action='store_true', help="Only select R assignments")
+    roulette_parser.add_argument('-i', '--ignore-progress', action='store_true', help="Ignore progress file (select from all tasks)")
+
     # Main parser arguments
     parser.add_argument('-n', '--num', type=int, default=5, help="Number of files")
     parser.add_argument('-w', '--weeks', type=str, default="all", help="Weeks filter (e.g., '04-08,11')")
@@ -409,11 +561,20 @@ def main():
     if args.command == 'reveal':
         reveal_exam_files(dest_dir)
         return
-    if args.command == 'done':
+    if args.command == 'hide':
+        hide_exam_files(dest_dir)
+        return
+    if args.command == 'trash':
+        trash_exam_files(dest_dir, root_dir / PROGRESS_FILE)
+        return
+    if args.command == 'archive': # Handle 'archive' and 'done' alias
         archive_existing_exam(dest_dir, archive_dir)
         return
     if args.command == 'progress':
         show_progress(root_dir, args.only_p, args.only_r)
+        return
+    if args.command == 'roulette':
+        run_roulette(root_dir, args)
         return
 
     # --- Default Action: Exam Generation ---

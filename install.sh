@@ -55,7 +55,13 @@ mkdir -p "$BIN_DIR"
 rm -f "$BIN_DIR/veryfi"
 ln -s "$INSTALL_DIR/bin/veryfi" "$BIN_DIR/veryfi"
 
-# 8. Ask for optional alias
+# 8. Migrate old progress file if it exists
+if [ -f "$HOME/pb152/progress.json" ]; then
+    echo "--> Migrating ~/pb152/progress.json to ~/pb152/exams.progress.json"
+    mv "$HOME/pb152/progress.json" "$HOME/pb152/exams.progress.json"
+fi
+
+# 9. Ask for optional alias
 read -p "Do you want to add the 'pb152cv' alias for 'veryfi'? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -64,7 +70,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     ln -s "$INSTALL_DIR/bin/veryfi" "$BIN_DIR/pb152cv"
 fi
 
-# 9. Self-destruct the source folder silently
+# 10. Self-destruct the source folder silently
 (
   sleep 2 &&
   rm -rf "$SCRIPT_DIR"

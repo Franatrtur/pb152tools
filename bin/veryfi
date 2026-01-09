@@ -45,7 +45,30 @@ case "$COMMAND" in
         "$VENV_PYTHON" "$SRC_DIR/format_practice.py" "$@"
         ;;
     "help"|"--help"|"-h")
-        echo "Usage: veryfi [exam|my|format|uninstall] ..."
+        echo "Usage: veryfi [exam|my|format|reinstall|uninstall] ..."
+        ;;
+    "update"|"reinstall")
+        echo "Preparing for reinstallation..."
+        REINSTALL_SCRIPT_SOURCE="$INSTALL_ROOT/bin/reinstall.sh"
+        
+        if [ ! -f "$REINSTALL_SCRIPT_SOURCE" ]; then
+            echo "Error: Reinstall script not found at $REINSTALL_SCRIPT_SOURCE"
+            echo "Your installation may be corrupt. Please try installing manually."
+            exit 1
+        fi
+
+        # Create a temporary file to copy the reinstall script to
+        # This is the key to avoiding self-destruction
+        TMP_REINSTALL_SCRIPT=$(mktemp /tmp/veryfi-reinstaller.XXXXXX.sh)
+        chmod +x "$TMP_REINSTALL_SCRIPT"
+        
+        # Copy the contents of the real reinstall script to the temporary one
+        cat "$REINSTALL_SCRIPT_SOURCE" > "$TMP_REINSTALL_SCRIPT"
+
+        echo "Handing over to the reinstallation process..."
+        
+        # Execute the temporary script, replacing the current process
+        exec "$TMP_REINSTALL_SCRIPT"
         ;;
     "uninstall")
         read -p "Are you sure you want to uninstall veryfi? This will remove ~/.veryfi and symlinks. (y/n) " -n 1 -r
