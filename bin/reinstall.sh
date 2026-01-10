@@ -3,9 +3,16 @@
 echo "Starting Veryfi reinstallation..."
 echo "This will uninstall and reinstall the application."
 
+read -p "Are you sure you want to update? This will fetch the latest version from GitHub. (y/n) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Update cancelled."
+    exit 1
+fi
+
 # Define locations and the source repository
 INSTALL_DIR="$HOME/.veryfi"
-REPO_URL="https://github.com/Franatrtur/veryfi.git"
+source "$INSTALL_DIR/repo.conf"
 
 # --- Run the uninstaller to clean up the old version ---
 echo

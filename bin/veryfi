@@ -21,6 +21,26 @@ if [ -f "$VERSION_FILE" ]; then
     cat "$VERSION_FILE"
 fi
 
+# --- Check for updates ---
+# This requires an internet connection and curl
+REPO_CONFIG_FILE="$INSTALL_ROOT/repo.conf"
+if [ -f "$REPO_CONFIG_FILE" ] && command -v curl &> /dev/null; then
+    source "$REPO_CONFIG_FILE"
+    
+    # Assuming the default branch is 'main'.
+    RAW_URL_BASE=$(echo "$REPO_URL" | sed 's/\.git$//' | sed 's/github.com/raw.githubusercontent.com/')/main
+    REMOTE_VERSION_URL="$RAW_URL_BASE/assets/version.txt"
+
+    # Fetch remote version, with a timeout of 5 seconds
+    REMOTE_VERSION=$(curl -sL --max-time 5 "$REMOTE_VERSION_URL")
+    LOCAL_VERSION=$(cat "$VERSION_FILE")
+
+    # If remote fetch was successful and versions differ, show message
+    if [ -n "$REMOTE_VERSION" ] && [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
+        echo -e "Update available! run ${YELLOW}veryfi update${RESET} to update."
+    fi
+fi
+
 # Point to the isolated python
 VENV_PYTHON="$INSTALL_ROOT/venv/bin/python"
 SRC_DIR="$INSTALL_ROOT/src"

@@ -25,6 +25,7 @@ cp -r "$SCRIPT_DIR/src" "$INSTALL_DIR/"
 cp -r "$SCRIPT_DIR/bin" "$INSTALL_DIR/"
 cp -r "$SCRIPT_DIR/assets" "$INSTALL_DIR/"
 cp "$SCRIPT_DIR/requirements.txt" "$INSTALL_DIR/"
+cp "$SCRIPT_DIR/repo.conf" "$INSTALL_DIR/"
 cp "$SCRIPT_DIR/uninstall.sh" "$INSTALL_DIR/"
 
 # 4. Create the Isolated Venv
@@ -47,6 +48,7 @@ fi
 # 6. Make executables
 echo "--> Setting file permissions..."
 chmod +x "$INSTALL_DIR/bin/veryfi"
+chmod +x "$INSTALL_DIR/bin/apply-migrations.sh"
 chmod +x "$INSTALL_DIR/uninstall.sh"
 
 # 7. Symlink
@@ -55,11 +57,8 @@ mkdir -p "$BIN_DIR"
 rm -f "$BIN_DIR/veryfi"
 ln -s "$INSTALL_DIR/bin/veryfi" "$BIN_DIR/veryfi"
 
-# 8. Migrate old progress file if it exists
-if [ -f "$HOME/pb152/progress.json" ]; then
-    echo "--> Migrating ~/pb152/progress.json to ~/pb152/exams.progress.json"
-    mv "$HOME/pb152/progress.json" "$HOME/pb152/exams.progress.json"
-fi
+# 8. Run migrations for past breaking changes
+bash "$INSTALL_DIR/bin/apply-migrations.sh"
 
 # 9. Ask for optional alias
 read -p "Do you want to add the 'pb152cv' alias for 'veryfi'? (y/n) " -n 1 -r
