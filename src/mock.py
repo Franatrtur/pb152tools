@@ -261,7 +261,7 @@ def archive_existing_exam(exam_dir: Path, archive_root: Path):
         hours = total_seconds // 3600
         minutes = (total_seconds % 3600) // 60
         
-        time_str = f"Exam took {hours}:{minutes:02d} from generation to archival."
+        time_str = f"Exam took {hours}h:{minutes:02d}m from generation to archival."
         
         try:
             with open(dest_dir / 'exam.time.length.txt', 'w') as f:
