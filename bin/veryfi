@@ -32,12 +32,16 @@ if [ -f "$REPO_CONFIG_FILE" ] && command -v curl &> /dev/null; then
     REMOTE_VERSION_URL="$RAW_URL_BASE/version.txt"
 
     # Fetch remote version, with a timeout of 5 seconds
-    REMOTE_VERSION=$(curl -sL --max-time 5 "$REMOTE_VERSION_URL")
-    LOCAL_VERSION=$(cat "$VERSION_FILE")
+    REMOTE_VERSION_RAW=$(curl -sL --max-time 5 "$REMOTE_VERSION_URL")
+    LOCAL_VERSION_RAW=$(cat "$VERSION_FILE")
+
+    # Trim whitespace (like newlines) from versions for a reliable comparison
+    REMOTE_VERSION=$(echo "$REMOTE_VERSION_RAW" | xargs)
+    LOCAL_VERSION=$(echo "$LOCAL_VERSION_RAW" | xargs)
 
     # If remote fetch was successful and versions differ, show message
     if [ -n "$REMOTE_VERSION" ] && [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
-        echo -e "Update available! run ${YELLOW}veryfi update${RESET} to update."
+        echo -e "Update available! ${LOCAL_VERSION} -> ${REMOTE_VERSION}. Run ${YELLOW}veryfi update${RESET} to update."
     fi
 fi
 
