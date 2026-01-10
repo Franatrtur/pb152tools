@@ -541,9 +541,10 @@ def main():
     
     # Existing subparsers
     subparsers.add_parser('reveal', help='Reveal anonymized file names in the current exam')
-    subparsers.add_parser('archive', aliases=['done'], help='Archive last exam')
+    subparsers.add_parser('archive', help='Archive last exam')
     subparsers.add_parser('hide', help='Anonymize file names in the current exam')
     subparsers.add_parser('trash', help='Remove current exam without archiving and untrack its tasks')
+    subparsers.add_parser('done', help='Alias for archive') # Explicitly add 'done' as a subparser
 
     # New 'progress' subparser
     progress_parser = subparsers.add_parser('progress', help='Show assignment completion progress')
@@ -581,7 +582,7 @@ def main():
     if args.command == 'trash':
         trash_exam_files(dest_dir, root_dir / PROGRESS_FILE)
         return
-    if args.command == 'archive': # Handle 'archive' and 'done' alias
+    if args.command == 'archive' or args.command == 'done': # Handle 'archive' and 'done' alias
         archive_existing_exam(dest_dir, archive_dir)
         return
     if args.command == 'progress':
