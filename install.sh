@@ -25,6 +25,7 @@ cp -r "$SCRIPT_DIR/src" "$INSTALL_DIR/"
 cp -r "$SCRIPT_DIR/bin" "$INSTALL_DIR/"
 cp -r "$SCRIPT_DIR/assets" "$INSTALL_DIR/"
 cp "$SCRIPT_DIR/requirements.txt" "$INSTALL_DIR/"
+cp "$SCRIPT_DIR/version.txt" "$INSTALL_DIR/"
 cp "$SCRIPT_DIR/repo.conf" "$INSTALL_DIR/"
 cp "$SCRIPT_DIR/uninstall.sh" "$INSTALL_DIR/"
 

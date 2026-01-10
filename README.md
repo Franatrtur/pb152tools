@@ -1,54 +1,82 @@
-# veryfi - pb152cv tools
+# Veryfi
 
-It is very, very FI.  
-this is a collection of tools for pb152cv.
+A collection of command-line utilities designed to streamline your workflow for the `pb152` course at FI. It helps with mock exam generation, code formatting practice, and getting AI-powered hints for your assignments.
 
-## how to install
+## Features
 
-ON AISA:
+*   **Mock Exam Generation**: Create realistic, timed mock exams using a random selection of tasks from your coursework.
+*   **AI-Powered Tutor**: Get intelligent, context-aware hints for your code without revealing the solution.
+*   **Automatic Update Notifications**: The tool will let you know when a new version is available.
+*   **Safe & Simple Installation**: A one-line installer that automatically configures your PATH.
+*   **Robust Update/Uninstall Process**: Simple commands to update or completely remove the tool.
+
+## Installation
+
+Run the following commands in your terminal:
+
 ```bash
 git clone https://github.com/Franatrtur/veryfi.git
-veryfi/install.sh
+cd veryfi
+bash install.sh
 ```
-make sure `~/bin` is in your `PATH`. it probably is.
 
-## what it does
+The installer will copy the necessary files to `~/.veryfi` and create a symbolic link in `~/bin`. It will also automatically check if `~/bin` is in your system's `PATH` and, if not, will add it to your shell's configuration file (e.g., `~/.bashrc`, `~/.zshrc`).
 
-#### `veryfi exam [options]` - make a fake test
+You will be prompted to install the optional AI Advisor, which requires an internet connection to download dependencies.
 
-this makes a mock exam in a new folder. it copies random `p*` or `r*` files from your `~/pb152` folder.
+## Updating
 
-**options:**
-*   `-n 5`: how many tasks (default is 5)
-*   `-w 01-05`: use only weeks 1 to 5
-*   `-p`: only 'p' tasks
-*   `-r`: only 'r' tasks
-*   `-s`: don't rename files to `task_1.c`, `task_2.c` etc.
+To update Veryfi to the latest version, simply run:
 
-after you're done:
-*   `veryfi exam done`: archives your test to `exams_finished`
-*   `veryfi exam reveal`: renames `task_*.c` back to original names if you didn't use `-s`
+```bash
+veryfi update
+```
 
-#### `veryfi format` - practice for the format test
+The script will ask for confirmation, then safely download the latest version and reinstall the tool.
 
-copies a messy C file to `~/pb152/print_format_practice.c`.
-your job is to fix the formatting. it tells you how to compile it to check your work.
+## Commands
 
-#### `veryfi my <your_file.c>` - get hints for my code
+### `veryfi exam [options]`
 
-this is an AI tutor. it looks at your code and the `.log` file and gives you a hint about what to do next. it won't give you the answer.
+Generates a mock exam in a new directory. It copies a random selection of `p*` or `r*` files from your `~/pb152` directory.
 
-you need to set your Gemini API key first:
+*   **`[options]`**:
+    *   `-n 5`: Number of tasks for the exam (default: 5).
+    *   `-w 01-05`: Use tasks only from a specific range of weeks (e.g., weeks 1 to 5).
+    *   `-p`: Use only 'p' (practice) tasks.
+    *   `-r`: Use only 'r' (review) tasks.
+    *   `-s`: Preserve original file names instead of renaming them to `task_1.c`, `task_2.c`, etc.
+
+*   **`veryfi exam done`**: Archives the current exam to `~/pb152/exams_finished` and logs the time spent.
+*   **`veryfi exam reveal`**: If you didn't use the `-s` option, this renames the `task_*.c` files back to their original names.
+
+### `veryfi my <your_file.c>`
+
+The AI Tutor. This command analyzes your source code and its corresponding `.log` file to provide a helpful hint without giving away the solution.
+
+**Note:** This is an optional component. You must agree to its installation when running the installer. You also need to provide a Gemini API Key via an environment variable:
+
 ```bash
 export GEMINI_API_KEY="your_key_here"
 ```
-put that in your `.bashrc` or something.
+It's recommended to add this line to your `~/.bashrc` or `~/.zshrc` file.
 
-## how to uninstall
+### `veryfi format`
 
-just run this from the repo folder:
+Helps you practice for the code formatting test. It copies a C file with messy formatting to `~/pb152/print_format_practice.c` and provides instructions on how to compile and check your work.
+
+### `veryfi update`
+
+Checks for and installs the latest version of the tool.
+
+### `veryfi uninstall`
+
+Removes all Veryfi files and symlinks from your system.
+
+## Uninstalling
+
+You can uninstall the tool at any time by running:
 ```bash
-./uninstall.sh
+veryfi uninstall
 ```
-
-it will delete `~/.veryfi` and the symlink in `~/bin`.
+This will remove the `~/.veryfi` directory and the symlinks from `~/bin`.
