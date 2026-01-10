@@ -253,7 +253,21 @@ def archive_existing_exam(exam_dir: Path, archive_root: Path):
             files_moved += 1
         except Exception as e: logging.error(f"Failed to archive {file_path.name}: {e}")
 
-    if files_moved > 0: logging.info(f"Archived {files_moved} assignments to {dest_dir.name}")
+    if files_moved > 0:
+        logging.info(f"Archived {files_moved} assignments to {dest_dir.name}")
+
+        duration = datetime.now() - dt_object
+        total_seconds = int(duration.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        
+        time_str = f"Exam took {hours}:{minutes:02d} from generation to archival."
+        
+        try:
+            with open(dest_dir / 'exam.time.length.txt', 'w') as f:
+                f.write(time_str + "\n")
+        except Exception as e:
+            logging.error(f"Failed to write exam duration file: {e}")
 
     try:
         shutil.rmtree(exam_dir)

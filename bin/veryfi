@@ -15,6 +15,12 @@ if [ -f "$LOGO_FILE" ]; then
     echo -e "${RESET}"
 fi
 
+# --- Display Version ---
+VERSION_FILE="$INSTALL_ROOT/assets/version.txt"
+if [ -f "$VERSION_FILE" ]; then
+    cat "$VERSION_FILE"
+fi
+
 # Point to the isolated python
 VENV_PYTHON="$INSTALL_ROOT/venv/bin/python"
 SRC_DIR="$INSTALL_ROOT/src"
