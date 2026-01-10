@@ -16,7 +16,7 @@ if [ -f "$LOGO_FILE" ]; then
 fi
 
 # --- Display Version ---
-VERSION_FILE="$INSTALL_ROOT/assets/version.txt"
+VERSION_FILE="$INSTALL_ROOT/version.txt"
 if [ -f "$VERSION_FILE" ]; then
     cat "$VERSION_FILE"
 fi
@@ -29,7 +29,7 @@ if [ -f "$REPO_CONFIG_FILE" ] && command -v curl &> /dev/null; then
     
     # Assuming the default branch is 'main'.
     RAW_URL_BASE=$(echo "$REPO_URL" | sed 's/\.git$//' | sed 's/github.com/raw.githubusercontent.com/')/main
-    REMOTE_VERSION_URL="$RAW_URL_BASE/assets/version.txt"
+    REMOTE_VERSION_URL="$RAW_URL_BASE/version.txt"
 
     # Fetch remote version, with a timeout of 5 seconds
     REMOTE_VERSION=$(curl -sL --max-time 5 "$REMOTE_VERSION_URL")

@@ -76,6 +76,42 @@ fi
 ) &
 disown
 
+# --- Setup user's PATH to include $HOME/bin ---
+setup_user_path() {
+    echo "--> Checking if $HOME/bin is in your PATH..."
+    if [[ ":$PATH:" != *":$HOME/bin:"* ]]; then
+        echo "    -> '$HOME/bin' is not in your PATH."
+        
+        # Determine shell profile file
+        if [ -n "$BASH_VERSION" ]; then
+            PROFILE_FILE="$HOME/.bashrc"
+        elif [ -n "$ZSH_VERSION" ]; then
+            PROFILE_FILE="$HOME/.zshrc"
+        else
+            PROFILE_FILE="$HOME/.profile"
+        fi
+
+        echo "    -> Detected shell profile: $PROFILE_FILE"
+
+        if [ -f "$PROFILE_FILE" ] && grep -q 'export PATH=.*$HOME/bin' "$PROFILE_FILE"; then
+            echo "    -> Your '$PROFILE_FILE' already seems to set the PATH, but it's not sourced."
+            echo "    -> Please run 'source $PROFILE_FILE' or open a new terminal."
+        else
+            echo "    -> Adding '$HOME/bin' to PATH in '$PROFILE_FILE'."
+            # Append the export command
+            echo -e "\n# Added by Veryfi installer to include local binaries" >> "$PROFILE_FILE"
+            echo 'export PATH="$HOME/bin:$PATH"' >> "$PROFILE_FILE"
+            echo "    -> PATH updated. Please run 'source $PROFILE_FILE' or open a new terminal for changes to take effect."
+        fi
+    else
+        echo "--> '$HOME/bin' is already in your PATH. Excellent."
+    fi
+}
+
+# Run the function to check and configure the user's path
+setup_user_path
+
+
 echo "------------------------------------------------"
 echo "Installation Complete."
 echo "Location: $INSTALL_DIR"

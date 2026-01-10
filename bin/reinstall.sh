@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# --- CWD Sanity Check ---
+# Abort if the current working directory has been deleted while the user was in it.
+if ! pwd > /dev/null 2>&1; then
+    echo "Error: The current working directory is invalid or has been deleted."
+    echo "Please 'cd' to a valid directory and run the update again."
+    exit 1
+fi
+
 echo "Starting Veryfi reinstallation..."
 echo "This will uninstall and reinstall the application."
 
@@ -12,6 +20,15 @@ fi
 
 # Define locations and the source repository
 INSTALL_DIR="$HOME/.veryfi"
+
+# --- Sanity Check ---
+# Ensure the installation directory exists before we try to update.
+if [ ! -d "$INSTALL_DIR" ]; then
+    echo "Error: Veryfi installation directory not found at $INSTALL_DIR."
+    echo "Nothing to update. Please run the installer if you want to install veryfi."
+    exit 1
+fi
+
 source "$INSTALL_DIR/repo.conf"
 
 # --- Run the uninstaller to clean up the old version ---
