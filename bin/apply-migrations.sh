@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script applies necessary migrations to adapt to new versions of veryfi.
+# This script applies necessary migrations to adapt to new versions of pb152tools.
 # It is designed to be run from the installer.
 # It should be safe to run this script multiple times.
 

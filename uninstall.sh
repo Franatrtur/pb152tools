@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Define the locations based on the installer
-INSTALL_DIR="$HOME/.veryfi"
+INSTALL_DIR="$HOME/.pb152tools"
 BIN_DIR="$HOME/bin"
-SYMLINK_PATH="$BIN_DIR/veryfi"
+SYMLINK_PATH="$BIN_DIR/pb152tools"
 
-echo "Uninstalling Veryfi..."
+echo "Uninstalling pb152tools..."
 
 # 1. Remove the installation directory
 if [ -d "$INSTALL_DIR" ]; then
@@ -20,7 +20,7 @@ if [ -L "$SYMLINK_PATH" ]; then
     echo "Removing symlink: $SYMLINK_PATH"
     rm -f "$SYMLINK_PATH"
 else
-    echo "Symlink 'veryfi' not found. Skipping."
+    echo "Symlink 'pb152tools' not found. Skipping."
 fi
 
 # Also remove the alias if it exists

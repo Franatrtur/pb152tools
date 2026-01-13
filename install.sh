@@ -4,10 +4,10 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Define the "Permanent Home" for the app
-INSTALL_DIR="$HOME/.veryfi"
+INSTALL_DIR="$HOME/.pb152tools"
 BIN_DIR="$HOME/bin"
 
-echo "Installing Veryfi to $INSTALL_DIR..."
+echo "Installing pb152tools to $INSTALL_DIR..."
 
 # 1. Clean Slate
 if [ -d "$INSTALL_DIR" ]; then
@@ -48,26 +48,26 @@ fi
 
 # 6. Make executables
 echo "--> Setting file permissions..."
-chmod +x "$INSTALL_DIR/bin/veryfi"
+chmod +x "$INSTALL_DIR/bin/pb152tools"
 chmod +x "$INSTALL_DIR/bin/apply-migrations.sh"
 chmod +x "$INSTALL_DIR/uninstall.sh"
 
 # 7. Symlink
 echo "--> Creating symlink in $BIN_DIR..."
 mkdir -p "$BIN_DIR"
-rm -f "$BIN_DIR/veryfi"
-ln -s "$INSTALL_DIR/bin/veryfi" "$BIN_DIR/veryfi"
+rm -f "$BIN_DIR/pb152tools"
+ln -s "$INSTALL_DIR/bin/pb152tools" "$BIN_DIR/pb152tools"
 
 # 8. Run migrations for past breaking changes
 bash "$INSTALL_DIR/bin/apply-migrations.sh"
 
 # 9. Ask for optional alias
-read -p "Do you want to add the 'pb152cv' alias for 'veryfi'? (y/n) " -n 1 -r
+read -p "Do you want to add the 'pb152cv' alias for 'pb152tools'? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "--> Creating alias 'pb152cv'..."
     rm -f "$BIN_DIR/pb152cv"
-    ln -s "$INSTALL_DIR/bin/veryfi" "$BIN_DIR/pb152cv"
+    ln -s "$INSTALL_DIR/bin/pb152tools" "$BIN_DIR/pb152cv"
 fi
 
 # 10. Self-destruct the source folder silently
@@ -100,7 +100,7 @@ setup_user_path() {
         else
             echo "    -> Adding '$HOME/bin' to PATH in '$PROFILE_FILE'."
             # Append the export command
-            echo -e "\n# Added by Veryfi installer to include local binaries" >> "$PROFILE_FILE"
+            echo -e "\n# Added by pb152tools installer to include local binaries" >> "$PROFILE_FILE"
             echo 'export PATH="$HOME/bin:$PATH"' >> "$PROFILE_FILE"
             echo "    -> PATH updated. Please run 'source $PROFILE_FILE' or open a new terminal for changes to take effect."
         fi
@@ -116,7 +116,7 @@ setup_user_path
 echo "------------------------------------------------"
 echo "Installation Complete."
 echo "Location: $INSTALL_DIR"
-echo "Run 'veryfi help' to get started."
-echo "To uninstall, you can now run 'veryfi uninstall'."
+echo "Run 'pb152tools help' to get started."
+echo "To uninstall, you can now run 'pb152tools uninstall'."
 echo
-echo "NOTE: If the 'veryfi' command is not found, please restart your terminal or run 'source ~/.bashrc'."
+echo "NOTE: If the 'pb152tools' command is not found, please restart your terminal or run 'source ~/.bashrc'."
