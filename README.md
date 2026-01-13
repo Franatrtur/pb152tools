@@ -1,8 +1,6 @@
-<center>
-<h1> pb152tools </h1>
+<h1 align="center">pb152tools</h1>
 
-A collection of tools for PB152cv course at FI MUNI.
-</center>
+<p align="center">A collection of tools for PB152cv course at FI MUNI.</p>
 
 ## Installation on AISA
 
