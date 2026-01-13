@@ -8,7 +8,7 @@ if ! pwd > /dev/null 2>&1; then
     exit 1
 fi
 
-echo "Starting Veryfi reinstallation..."
+echo "Starting pb152tools reinstallation..."
 echo "This will uninstall and reinstall the application."
 
 read -p "Are you sure you want to update? This will fetch the latest version from GitHub. (y/n) " -n 1 -r
@@ -19,13 +19,13 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 # Define locations and the source repository
-INSTALL_DIR="$HOME/.veryfi"
+INSTALL_DIR="$HOME/.pb152tools"
 
 # --- Sanity Check ---
 # Ensure the installation directory exists before we try to update.
 if [ ! -d "$INSTALL_DIR" ]; then
-    echo "Error: Veryfi installation directory not found at $INSTALL_DIR."
-    echo "Nothing to update. Please run the installer if you want to install veryfi."
+    echo "Error: pb152tools installation directory not found at $INSTALL_DIR."
+    echo "Nothing to update. Please run the installer if you want to install pb152tools."
     exit 1
 fi
 
@@ -39,7 +39,7 @@ if [ -f "$INSTALL_DIR/uninstall.sh" ]; then
 else
     echo "Uninstall script not found. Attempting to remove directories manually..."
     rm -rf "$INSTALL_DIR"
-    rm -f "$HOME/bin/veryfi"
+    rm -f "$HOME/bin/pb152tools"
     rm -f "$HOME/bin/pb152cv"
 fi
 echo "--> Uninstallation complete."
@@ -47,7 +47,7 @@ echo "--> Uninstallation complete."
 # --- Clone the latest version from GitHub ---
 echo
 echo "--> Step 2 of 3: Cloning the latest version from GitHub..."
-CLONE_DIR=$(mktemp -d /tmp/veryfi-reinstall.XXXXXX)
+CLONE_DIR=$(mktemp -d /tmp/pb152tools-reinstall.XXXXXX)
 
 # Check if git is installed
 if ! command -v git &> /dev/null; then
