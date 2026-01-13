@@ -34,7 +34,7 @@ echo "--> Creating Python virtual environment..."
 python3 -m venv "$INSTALL_DIR/venv"
 
 # 5. Install Optional AI Advisor Dependencies
-read -p "Do you want to install the optional AI Advisor (requires ~50MB download)? (y/n) " -n 1 -r
+read -p "Do you want to install the optional AI Advisor (BETA) (requires ~50MB download)? (y/N) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "--> Installing AI Advisor dependencies via pip..."

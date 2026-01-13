@@ -2,7 +2,7 @@
 
 # Hardcode the install location. 
 # Since we control the installer, we know exactly where this will be.
-INSTALL_ROOT="$HOME/.veryfi"
+INSTALL_ROOT="$HOME/.pb152tools"
 
 # --- Display Logo ---
 YELLOW='\033[0;33m'
@@ -41,7 +41,7 @@ if [ -f "$REPO_CONFIG_FILE" ] && command -v curl &> /dev/null; then
 
     # If remote fetch was successful and versions differ, show message
     if [ -n "$REMOTE_VERSION" ] && [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
-        echo -e "Update available! ${LOCAL_VERSION} -> ${REMOTE_VERSION}. Run ${YELLOW}veryfi update${RESET} to update."
+        echo -e "Update available! ${LOCAL_VERSION} -> ${REMOTE_VERSION}. Run ${YELLOW}pb152tools update${RESET} to update."
     fi
 fi
 
@@ -59,7 +59,7 @@ if [ ! -f "$VENV_PYTHON" ]; then
 fi
 
 case "$COMMAND" in
-    "my")
+    "advise")
         # Check if the advisor was installed
         if [ ! -f "$INSTALL_ROOT/.advisor_enabled" ]; then
             echo "Error: The AI Advisor is not installed."
@@ -75,7 +75,22 @@ case "$COMMAND" in
         "$VENV_PYTHON" "$SRC_DIR/format_practice.py" "$@"
         ;;
     "help"|"--help"|"-h")
-        echo "Usage: veryfi [exam|my|format|reinstall|uninstall] ..."
+        echo "Usage: pb152tools <command> [options]"
+        echo ""
+        echo "A collection of tools for the PB152 course."
+        echo ""
+        echo "Commands:"
+        echo "  exam                Generate a mock exam."
+        echo "  exam progress       Show your progress in the mock exams."
+        echo "  exam reveal         Reveal the original filenames of the exam."
+        echo "  exam hide           Hide the original filenames of the exam."
+        echo "  exam trash          Remove the current exam without archiving."
+        echo "  exam done           Archive the current exam."
+        echo "  advise <file.c>     Get AI-powered advice on your C code."
+        echo "  format              Practice C code formatting."
+        echo "  update              Update pb152tools to the latest version."
+        echo "  uninstall           Uninstall pb152tools."
+        echo "  help                Show this help message."
         ;;
     "update"|"reinstall")
         echo "Preparing for reinstallation..."
@@ -89,7 +104,7 @@ case "$COMMAND" in
 
         # Create a temporary file to copy the reinstall script to
         # This is the key to avoiding self-destruction
-        TMP_REINSTALL_SCRIPT=$(mktemp /tmp/veryfi-reinstaller.XXXXXX.sh)
+        TMP_REINSTALL_SCRIPT=$(mktemp /tmp/pb152tools-reinstaller.XXXXXX.sh)
         chmod +x "$TMP_REINSTALL_SCRIPT"
         
         # Copy the contents of the real reinstall script to the temporary one
@@ -101,12 +116,12 @@ case "$COMMAND" in
         exec "$TMP_REINSTALL_SCRIPT"
         ;;
     "uninstall")
-        read -p "Are you sure you want to uninstall veryfi? This will remove ~/.veryfi and symlinks. (y/n) " -n 1 -r
+        read -p "Are you sure you want to uninstall pb152tools? This will remove ~/.pb152tools and symlinks. (y/n) " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo "Uninstalling veryfi in the background..."
+            echo "Uninstalling pb152tools in the background..."
             # Copy uninstaller to /tmp to avoid "directory in use" errors
-            TMP_UNINSTALLER="/tmp/veryfi_uninstall.sh"
+            TMP_UNINSTALLER="/tmp/pb152tools_uninstall.sh"
             cp "$INSTALL_ROOT/uninstall.sh" "$TMP_UNINSTALLER"
             chmod +x "$TMP_UNINSTALLER"
 
